@@ -1,75 +1,53 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-// jsonwebtoken Génère un token pour les routes sécurisées
 const jwt = require('jsonwebtoken');
-const mysql = require('mysql2');
-const dotenv = require('dotenv');
 const { body, validationResult } = require('express-validator');
-
-// 🔐 Rate limiter protège contre les attaques bruteforce
-const {loginLimiter} = require('../../middlewares/rateLimiter');
-
-dotenv.config();
-
+const { loginLimiter } = require('../../middlewares/rateLimiter');
+const { User } = require('../../models');  // <- Import Sequelize model
 const router = express.Router();
 
-// Connexion à la base de données
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-});
-
-// 🛡️ Validation des entrées
 const validateLogin = [
-    body('email').isEmail().withMessage('Email invalide'),
-    body('mot_de_passe').notEmpty().withMessage('Mot de passe requis')
+  body('email').isEmail().withMessage('Email invalide'),
+  body('mot_de_passe').notEmpty().withMessage('Mot de passe requis'),
 ];
 
-// Route pour la connexion utilisateur
-router.post('/', loginLimiter, validateLogin, (req, res) => {
+router.post('/', loginLimiter, validateLogin, async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    //Valide que l’email est bien formé, etc.
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-    const { email, mot_de_passe } = req.body;
+  const { email, mot_de_passe } = req.body;
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(401).json({ message: 'Email ou mot de passe incorrect.' });
 
-    if (!email || !mot_de_passe) {
-        return res.status(400).json({ message: 'Email et mot de passe sont requis.' });
-    }
+    const isMatch = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
+    if (!isMatch) return res.status(401).json({ message: 'Email ou mot de passe incorrect.' });
 
-    db.execute('SELECT * FROM user WHERE email = ?', [email], (err, results) => {
-        if (err) {
-            return res.status(500).json({ message: 'Erreur interne du serveur.' });
-        }
-
-        if (results.length === 0) {
-            return res.status(401).json({ message: 'Email ou mot de passe incorrect.' });
-        }
-
-        const user = results[0];
-
-        bcrypt.compare(mot_de_passe, user.mot_de_passe, (err, isMatch) => {
-            if (err) {
-                return res.status(500).json({ message: 'Erreur lors de la comparaison du mot de passe.' });
-            }
-
-            if (!isMatch) {
-                return res.status(401).json({ message: 'Email ou mot de passe incorrect.' });
-            }
-            
-            const token = jwt.sign(
-                { id_user: user.id_user, nom: user.nom },
-                process.env.JWT_SECRET,
-                { expiresIn: '1h' }
-            );
-
-            res.json({ message: 'Connexion réussie', token });
-        });
-    });
+    const token = jwt.sign(
+      { id_user: user.id_user, nom: user.nom },
+      process.env.JWT_SECRET,
+      { expiresIn: '15min' }
+    );
+    // Génère le refresh token (7 jours)
+    const refreshToken = jwt.sign(
+        { id_user: user.id_user },
+        process.env.JWT_REFRESH_SECRET,
+        { expiresIn: '7d' }
+    );
+      
+    // 🍪 Envoie le refresh token en cookie sécurisé
+    res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // true en prod HTTPS
+        sameSite: 'Strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
+      });
+    
+    res.json({ message: 'Connexion réussie', token, refreshToken });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur interne du serveur.' });
+  }
 });
 
 module.exports = router;
