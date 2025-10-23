@@ -15,6 +15,9 @@ const profileRoutes = require('./routes/get/profile');
 const refreshTokenRoutes = require('./routes/post/refreshToken');
 const updateUserRoutes = require('./routes/update/updateUser');
 const deleteUserRoutes = require('./routes/delete/deleteUser');
+const postCategoryRoutes = require('./routes/post/postCategory');
+const updateCategoryRoutes = require('./routes/update/updateCategory');
+const getCategoryRoutes = require('./routes/get/getCategory');
 
 const app = express();
 
@@ -31,6 +34,9 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/token/refresh', refreshTokenRoutes);
 app.use('/api/updateUser', updateUserRoutes);
 app.use('/api/deleteUser', deleteUserRoutes);
+app.use('/api/category', getCategoryRoutes);
+app.use('/api/postCategory', postCategoryRoutes);
+app.use('/api/updateCategory', updateCategoryRoutes);
 
 // Serveur
 const PORT = process.env.PORT || 3000;

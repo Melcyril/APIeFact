@@ -1,0 +1,29 @@
+const express = require('express');
+const { Category } = require('../../models');
+const authenticateToken = require('../../middlewares/auth');
+
+const router = express.Router();
+
+// Renvoie toutes les catégories actives avec leurs sous-catégories (hiérarchie)
+router.get('/', authenticateToken, async (req, res) => {
+  try {
+    const categories = await Category.findAll({
+      where: { actif: true },
+      include: [{
+        model: Category,
+        as: 'subcategories',
+        where: { actif: true },
+        required: false,
+        order: [['ordre', 'ASC']]
+      }],
+      order: [['ordre', 'ASC']]
+    });
+
+    res.json(categories);
+  } catch (error) {
+    console.error('Erreur récupération catégories :', error);
+    res.status(500).json({ message: 'Erreur interne serveur.' });
+  }
+});
+
+module.exports = router;

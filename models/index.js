@@ -14,9 +14,11 @@ const sequelize = new Sequelize(
 
 // Importation des modèles
 const User = require('./User')(sequelize, DataTypes);
+const Category = require('./Category')(sequelize, DataTypes);
 
 // Exportation de sequelize et des modèles
 module.exports = {
   sequelize, // ✅ c’est CE qu’on veut utiliser dans server.js
   User,
+  Category,
 };
