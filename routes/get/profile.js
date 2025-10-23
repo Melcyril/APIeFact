@@ -1,10 +1,11 @@
 const express = require('express');
 const { User } = require('../../models'); // Import modèle Sequelize
 const authenticateToken = require('../../middlewares/auth'); // middleware JWT, par ex.
+const authorizeRoles = require('../../middlewares/role');
 
 const router = express.Router();
 
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken,authorizeRoles(2, 3), async (req, res) => {
   try {
     // req.user.id_user est extrait du token par ton middleware d'authentification
     const user = await User.findByPk(req.user.id_user, {

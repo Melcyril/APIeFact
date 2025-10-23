@@ -24,7 +24,7 @@ router.post('/', loginLimiter, validateLogin, async (req, res) => {
     if (!isMatch) return res.status(401).json({ message: 'Email ou mot de passe incorrect.' });
 
     const token = jwt.sign(
-      { id_user: user.id_user, nom: user.nom },
+      { id_user: user.id_user, nom: user.nom, id_statut: user.id_statut },
       process.env.JWT_SECRET,
       { expiresIn: '15min' }
     );
@@ -43,7 +43,7 @@ router.post('/', loginLimiter, validateLogin, async (req, res) => {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
       });
     
-    res.json({ message: 'Connexion réussie', token, refreshToken });
+    res.json({ message: 'Connexion réussie', token });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erreur interne du serveur.' });
