@@ -18,6 +18,10 @@ const deleteUserRoutes = require('./routes/delete/deleteUser');
 const postCategoryRoutes = require('./routes/post/postCategory');
 const updateCategoryRoutes = require('./routes/update/updateCategory');
 const getCategoryRoutes = require('./routes/get/getCategory');
+const postProductRoutes = require('./routes/post/postProduct');
+const getProductRoutes = require('./routes/get/getProduct');
+const updateProductRoutes = require('./routes/update/updateProduct');
+const deleteProductRoutes = require('./routes/delete/deleteProduct');
 
 const app = express();
 
@@ -37,7 +41,10 @@ app.use('/api/deleteUser', deleteUserRoutes);
 app.use('/api/category', getCategoryRoutes);
 app.use('/api/postCategory', postCategoryRoutes);
 app.use('/api/updateCategory', updateCategoryRoutes);
-
+app.use('/api/product', getProductRoutes);
+app.use('/api/postProduct', postProductRoutes);
+app.use('/api/updateProduct', updateProductRoutes);
+app.use('/api/deleteProduct', deleteProductRoutes);
 // Serveur
 const PORT = process.env.PORT || 3000;
 

@@ -15,10 +15,21 @@ const sequelize = new Sequelize(
 // Importation des modèles
 const User = require('./User')(sequelize, DataTypes);
 const Category = require('./Category')(sequelize, DataTypes);
+const Product = require('./Product')(sequelize, DataTypes);
+const Product_Image = require('./Product_Image')(sequelize, DataTypes);
+
+
+Category.hasMany(Product, { foreignKey: 'id_category' });
+Product.belongsTo(Category, { foreignKey: 'id_category' });
+
+Product.hasMany(Product_Image, { foreignKey: 'id_product' });
+Product_Image.belongsTo(Product, { foreignKey: 'id_product' });
 
 // Exportation de sequelize et des modèles
 module.exports = {
   sequelize, // ✅ c’est CE qu’on veut utiliser dans server.js
   User,
   Category,
+  Product,
+  Product_Image,
 };
