@@ -22,8 +22,8 @@ const Product_Image = require('./Product_Image')(sequelize, DataTypes);
 Category.hasMany(Product, { foreignKey: 'id_category' });
 Product.belongsTo(Category, { foreignKey: 'id_category' });
 
-Product.hasMany(Product_Image, { foreignKey: 'id_product' });
-Product_Image.belongsTo(Product, { foreignKey: 'id_product' });
+Product.hasMany(Product_Image, { foreignKey: 'id_product', as: 'images' });
+Product_Image.belongsTo(Product, { foreignKey: 'id_product', as: 'product' });
 
 // Exportation de sequelize et des modèles
 module.exports = {
