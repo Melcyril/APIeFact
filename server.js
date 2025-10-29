@@ -27,6 +27,10 @@ const getProduct_Image = require('./routes/get/getProduct_Image');
 const updateProduct_Image = require('./routes/update/updateProduct_Image');
 const deleteProduct_Image = require('./routes/delete/deleteProduct_Image');
 const getProductWithImages = require('./routes/get/getProductWithImages');
+const postCart = require('./routes/post/postCart');
+const getCart = require('./routes/get/getCart');
+const updateCart = require('./routes/update/updateCart');
+const deleteCart = require('./routes/delete/deleteCart');
 
 const app = express();
 
@@ -55,6 +59,10 @@ app.use('/api/product_image', getProduct_Image);
 app.use('/api/updateProduct_image', updateProduct_Image);
 app.use('/api/deleteProduct_image', deleteProduct_Image);
 app.use('/api/product_with_images', getProductWithImages);
+app.use('/api/Cart', postCart);
+app.use('/api/Cart', getCart);
+app.use('/api/Cart', updateCart);
+app.use('/api/Cart', deleteCart);
 
 // Serveur
 const PORT = process.env.PORT || 3000;

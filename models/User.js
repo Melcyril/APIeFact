@@ -1,3 +1,4 @@
+//User.js
 module.exports = (sequelize, DataTypes) => {
     return sequelize.define('User', {
       id_user: {

@@ -1,3 +1,4 @@
+//Product_image.js
 module.exports = (sequelize, DataTypes) => {
   return sequelize.define('Product_Image', {
     id_image: {
