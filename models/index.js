@@ -1,82 +1,72 @@
-//index.js
 require('dotenv').config();
 const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 
-// ==================== Connexion ====================
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    dialect: 'mysql',
-    logging: console.log, // utile pour déboguer les requêtes générées
-  }
-);
-
-// ==================== Import des modèles ====================
+// Import des modèles
 const User = require('./User')(sequelize, DataTypes);
 const Category = require('./Category')(sequelize, DataTypes);
 const Product = require('./Product')(sequelize, DataTypes);
 const Product_Image = require('./Product_Image')(sequelize, DataTypes);
 const Cart = require('./Cart')(sequelize, DataTypes);
 const Cart_Item = require('./Cart_Item')(sequelize, DataTypes);
+const Order = require('./Order')(sequelize, DataTypes);
+const Order_Item = require('./Order_Item')(sequelize, DataTypes);
+const Payment_Method = require('./Payment_Method')(sequelize, DataTypes);
+const Favorite = require('./Favorite')(sequelize, DataTypes);
+const Password_Reset = require('./Password_Reset')(sequelize, DataTypes);
 
-// ==================== Associations ====================
+// Associations
 
-// ----- Catégories et Produits -----
-Category.hasMany(Product, {
-  foreignKey: 'id_category',
-  as: 'products',
-  onDelete: 'CASCADE',
-});
-Product.belongsTo(Category, {
-  foreignKey: 'id_category',
-  as: 'category',
-});
+// Catégories → Produits
+Category.hasMany(Product, { foreignKey: 'id_category', as: 'products', onDelete: 'CASCADE' });
+Product.belongsTo(Category, { foreignKey: 'id_category', as: 'category' });
 
-// ----- Produits et Images -----
-Product.hasMany(Product_Image, {
-  foreignKey: 'id_product',
-  as: 'images',
-});
-Product_Image.belongsTo(Product, {
-  foreignKey: 'id_product',
-  as: 'product',
-});
+// Produits → Images
+Product.hasMany(Product_Image, { foreignKey: 'id_product', as: 'images' });
+Product_Image.belongsTo(Product, { foreignKey: 'id_product', as: 'product' });
 
-// ----- Utilisateurs et Paniers -----
-User.hasMany(Cart, {
-  foreignKey: 'id_user',
-  as: 'carts',
-  onDelete: 'CASCADE',
-});
-Cart.belongsTo(User, {
-  foreignKey: 'id_user',
-  as: 'user',
-});
+// Utilisateurs → Paniers
+User.hasMany(Cart, { foreignKey: 'id_user', as: 'carts', onDelete: 'CASCADE' });
+Cart.belongsTo(User, { foreignKey: 'id_user', as: 'user' });
 
-// ----- Panier et Items -----
-Cart.hasMany(Cart_Item, {
-  foreignKey: 'id_cart',
-  as: 'items',
-});
-Cart_Item.belongsTo(Cart, {
-  foreignKey: 'id_cart',
-  as: 'cart',
-});
+// Panier → Items
+Cart.hasMany(Cart_Item, { foreignKey: 'id_cart', as: 'items' });
+Cart_Item.belongsTo(Cart, { foreignKey: 'id_cart', as: 'cart' });
 
-// ----- Produits et Items -----
-Product.hasMany(Cart_Item, {
-  foreignKey: 'id_product',
-  as: 'cartItems',
-});
-Cart_Item.belongsTo(Product, {
-  foreignKey: 'id_product',
-  as: 'product',
-});
+// Produits → Items
+Product.hasMany(Cart_Item, { foreignKey: 'id_product', as: 'cartItems' });
+Cart_Item.belongsTo(Product, { foreignKey: 'id_product', as: 'product' });
 
-// ==================== Export ====================
+// Paiement → Commandes
+Payment_Method.hasMany(Order, { foreignKey: 'id_payment_method', as: 'orders' });
+Order.belongsTo(Payment_Method, { foreignKey: 'id_payment_method', as: 'payment_method' });
+
+// Utilisateur → Commandes
+User.hasMany(Order, { foreignKey: 'id_user', as: 'orders' });
+Order.belongsTo(User, { foreignKey: 'id_user', as: 'user' });
+
+// Commande → Order_Items
+Order.hasMany(Order_Item, { foreignKey: 'id_order', as: 'items' });
+Order_Item.belongsTo(Order, { foreignKey: 'id_order', as: 'order' });
+
+// Produit → Order_Items
+Product.hasMany(Order_Item, { foreignKey: 'id_product', as: 'orderItems' });
+Order_Item.belongsTo(Product, { foreignKey: 'id_product', as: 'product' });
+
+
+// Utilisateur → Favoris
+User.hasMany(Favorite, { foreignKey: 'id_user', as: 'favorites', onDelete: 'CASCADE' });
+Favorite.belongsTo(User, { foreignKey: 'id_user', as: 'user' });
+
+// Produit → Favoris
+Product.hasMany(Favorite, { foreignKey: 'id_product', as: 'favorites' });
+Favorite.belongsTo(Product, { foreignKey: 'id_product', as: 'product' });
+
+// Utilisateur → Password_Reset
+User.hasMany(Password_Reset, { foreignKey: 'id_user', as: 'password_resets' });
+Password_Reset.belongsTo(User, { foreignKey: 'id_user', as: 'user' });
+
+// Export
 module.exports = {
   sequelize,
   User,
@@ -85,4 +75,9 @@ module.exports = {
   Product_Image,
   Cart,
   Cart_Item,
+  Order,
+  Order_Item,
+  Payment_Method,
+  Favorite,
+  Password_Reset,
 };
