@@ -9,6 +9,7 @@ const Product = require('./Product')(sequelize, DataTypes);
 const Product_Image = require('./Product_Image')(sequelize, DataTypes);
 const Cart = require('./Cart')(sequelize, DataTypes);
 const Cart_Item = require('./Cart_Item')(sequelize, DataTypes);
+const Delivery = require('./Delivery')(sequelize, DataTypes);
 const Order = require('./Order')(sequelize, DataTypes);
 const Order_Item = require('./Order_Item')(sequelize, DataTypes);
 const Payment_Method = require('./Payment_Method')(sequelize, DataTypes);
@@ -40,6 +41,10 @@ Cart_Item.belongsTo(Product, { foreignKey: 'id_product', as: 'product' });
 // Paiement → Commandes
 Payment_Method.hasMany(Order, { foreignKey: 'id_payment_method', as: 'orders' });
 Order.belongsTo(Payment_Method, { foreignKey: 'id_payment_method', as: 'payment_method' });
+
+// Livraison → Commandes
+Delivery.hasMany(Order, { foreignKey: 'id_delivery', as: 'orders' });
+Order.belongsTo(Delivery, { foreignKey: 'id_delivery', as: 'delivery' });
 
 // Utilisateur → Commandes
 User.hasMany(Order, { foreignKey: 'id_user', as: 'orders' });
@@ -75,6 +80,7 @@ module.exports = {
   Product_Image,
   Cart,
   Cart_Item,
+  Delivery,
   Order,
   Order_Item,
   Payment_Method,
