@@ -6,7 +6,11 @@ const router = express.Router();
 router.get('/:id_product', async (req, res) => {
   try {
     const { id_product } = req.params;
-    const images = await Product_Image.findAll({ where: { id_product } });
+
+    const images = await Product_Image.findAll({
+      where: { id_product },
+      attributes: ['id_image', 'image_url', 'is_principale'] // ✅ important
+    });
 
     res.json(images);
   } catch (error) {

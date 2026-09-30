@@ -4,22 +4,27 @@ const authenticateToken = require('../../middlewares/auth');
 
 const router = express.Router();
 
-// Renvoie toutes les catégories actives avec leurs sous-catégories (hiérarchie)
+/**
+ * Récupère TOUTES les catégories et reconstruit l’arbre
+ */
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const categories = await Category.findAll({
-      where: { actif: true },
-      include: [{
-        model: Category,
-        as: 'subcategories',
-        where: { actif: true },
-        required: false,
-        order: [['ordre', 'ASC']]
-      }],
       order: [['ordre', 'ASC']]
     });
 
-    res.json(categories);
+    const buildTree = (items, parentId = null) => {
+      return items
+        .filter(item => item.parent_id === parentId)
+        .map(item => ({
+          ...item.toJSON(),
+          subcategories: buildTree(items, item.id_category)
+        }));
+    };
+
+    const tree = buildTree(categories);
+
+    res.json(tree);
   } catch (error) {
     console.error('Erreur récupération catégories :', error);
     res.status(500).json({ message: 'Erreur interne serveur.' });

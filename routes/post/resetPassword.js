@@ -10,8 +10,22 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Token et nouveau mot de passe requis.' });
     }
 
+    // Validation du mot de passe (même regex que register.js)
+    const regexMajuscule = /[A-Z]/;
+    const regexCaractereSpecial = /[^A-Za-z0-9]/;
+
+    if (
+      nouveau_mot_de_passe.length < 6 ||
+      !regexMajuscule.test(nouveau_mot_de_passe) ||
+      !regexCaractereSpecial.test(nouveau_mot_de_passe)
+    ) {
+      return res.status(400).json({
+        message: 'Le mot de passe doit contenir au moins 6 caractères, une majuscule et un caractère spécial.'
+      });
+    }
+
     const resetEntry = await Password_Reset.findOne({ where: { token_unique: token } });
-    if (!resetEntry) return res.status(404).json({ message: 'Token invalide.' });
+    if (!resetEntry) return res.status(404).json({ message: 'Token invalide ou expiré.' });
 
     if (new Date() > new Date(resetEntry.date_expiration)) {
       await resetEntry.destroy();
@@ -25,7 +39,6 @@ router.post('/', async (req, res) => {
     user.mot_de_passe = hash;
     await user.save();
 
-    // On supprime le token après usage
     await resetEntry.destroy();
 
     res.json({ message: 'Mot de passe réinitialisé avec succès.' });

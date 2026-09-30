@@ -1,37 +1,67 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const { User } = require('../../models');
 
 const router = express.Router();
 
-router.post('/', (req, res) => {
-  const refreshToken = req.cookies?.refreshToken;
+router.post('/', async (req, res) => {
+
+  const refreshToken =
+    req.cookies?.refreshToken;
 
   if (!refreshToken) {
-    return res.status(401).json({ message: 'Refresh token manquant' });
+    return res.status(401).json({
+      message: 'Refresh token manquant'
+    });
   }
 
-  jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ message: 'Refresh token invalide ou expiré' });
-    }
+  try {
 
-    // Création d'un nouveau access token
-    const newAccessToken = jwt.sign(
-      { id_user: decoded.id_user },
-      process.env.JWT_SECRET,
-      { expiresIn: '15m' }
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET
     );
 
-    // (Optionnel) Tu peux aussi faire une rotation de refresh token ici si tu veux
-    // const newRefreshToken = jwt.sign(
-    //   { id_user: decoded.id_user },
-    //   process.env.JWT_REFRESH_SECRET,
-    //   { expiresIn: '7d' }
-    // );
-    // res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true, sameSite: 'Strict', maxAge: 7*24*60*60*1000 });
+    const user = await User.findByPk(
+      decoded.id_user
+    );
 
-    res.json({ token: newAccessToken });
-  });
+    if (!user) {
+      return res.status(401).json({
+        message: 'Utilisateur introuvable'
+      });
+    }
+
+    const newAccessToken = jwt.sign(
+      {
+        id_user: user.id_user,
+        nom: user.nom,
+        id_statut: user.id_statut
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: '40min'
+      }
+    );
+
+    return res.json({
+      token: newAccessToken
+    });
+
+  } catch (err) {
+
+    console.error(
+      'Erreur refresh token:',
+      err
+    );
+
+    return res.status(403).json({
+      message:
+        'Refresh token invalide ou expiré'
+    });
+
+  }
+
 });
 
 module.exports = router;
